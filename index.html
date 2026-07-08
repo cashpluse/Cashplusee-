@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CashPlus</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@700;900&display=swap');
+
+:root {
+  --bg:#0a0e1a; --surface:#111827; --card:#1a2236; --border:#1e3a5f;
+  --accent:#00d4ff; --accent2:#7c3aed; --accent3:#f59e0b;
+  --text:#e2e8f0; --muted:#64748b; --success:#10b981; --danger:#ef4444;
+}
+[data-theme="light"] {
+  --bg:#f0f4ff; --surface:#ffffff; --card:#ffffff; --border:#dbeafe;
+  --text:#1e293b; --muted:#64748b;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  padding-bottom: 90px;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ===================== AUTH VIEW ===================== */
+#auth-view {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; position: relative; overflow: hidden;
+  padding-bottom: 0;
+}
+
+/* Animated background */
+.bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+.orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15; animation: float 8s ease-in-out infinite; }
+.orb1 { width:400px;height:400px; background:var(--accent); top:-100px;left:-100px; animation-delay:0s; }
+.orb2 { width:300px;height:300px; background:var(--accent2); bottom:-50px;right:-50px; animation-delay:3s; }
+.orb3 { width:200px;height:200px; background:var(--accent3); top:50%;left:50%; animation-delay:6s; }
+@keyframes float { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(30px,-30px) scale(1.1); } }
+
+.grid-bg {
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.auth-container { position: relative; z-index: 1; width: 100%; max-width: 420px; padding: 20px; }
+
+.logo { text-align: center; margin-bottom: 32px; }
+.logo-icon {
+  width: 64px; height: 64px; margin: 0 auto 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 18px; display: flex; align-items: center; justify-content: center;
+  font-size: 28px; box-shadow: 0 0 30px rgba(0,212,255,0.4);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%,100% { box-shadow: 0 0 30px rgba(0,212,255,0.4); }
+  50% { box-shadow: 0 0 50px rgba(0,212,255,0.7), 0 0 80px rgba(124,58,237,0.3); }
+}
+.logo h1 {
+  font-family: 'Orbitron', monospace; font-size: 28px; font-weight: 900;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 2px;
+}
+.logo p { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 32px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+  transition: all 0.4s ease;
+}
+
+.tabs { display: flex; gap: 4px; background: var(--surface); border-radius: 12px; padding: 4px; margin-bottom: 28px; }
+.tab {
+  flex: 1; padding: 10px; border: none; border-radius: 10px;
+  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 0.3s; color: var(--muted); background: transparent;
+}
+.tab.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; box-shadow: 0 4px 15px rgba(0,212,255,0.3); }
+
+.panel { display: none; animation: slideIn 0.3s ease; }
+.panel.active { display: block; }
+@keyframes slideIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+.input-group { margin-bottom: 18px; }
+.input-group label {
+  display: block; font-size: 12px; font-weight: 600; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+}
+.input-wrap { position: relative; display: flex; align-items: center; }
+.input-wrap .icon { position: absolute; left: 14px; font-size: 16px; opacity: 0.5; }
+.input-wrap input {
+  width: 100%; padding: 13px 14px 13px 42px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; color: var(--text);
+  font-family: 'Inter', sans-serif; font-size: 14px; transition: all 0.3s; outline: none;
+}
+.input-wrap input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,212,255,0.1); }
+.input-wrap input::placeholder { color: var(--muted); }
+.eye-btn { position: absolute; right: 14px; background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.5; transition: opacity 0.2s; }
+.eye-btn:hover { opacity: 1; }
+
+.forgot { text-align: right; margin-top: -10px; margin-bottom: 20px; }
+.forgot a { color: var(--accent); font-size: 12px; text-decoration: none; font-weight: 500; transition: opacity 0.2s; }
+.forgot a:hover { opacity: 0.7; }
+
+.btn-primary {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none; border-radius: 12px; color: white; font-family: 'Inter', sans-serif;
+  font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s; letter-spacing: 0.5px;
+  box-shadow: 0 4px 20px rgba(0,212,255,0.3); position: relative; overflow: hidden;
+}
+.btn-primary::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent); opacity: 0; transition: opacity 0.3s; }
+.btn-primary:hover::before { opacity: 1; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,212,255,0.4); }
+.btn-primary:active { transform: translateY(0); }
+
+.divider { text-align: center; position: relative; margin: 20px 0; }
+.divider::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: var(--border); }
+.divider span { position: relative; background: var(--card); padding: 0 12px; color: var(--muted); font-size: 12px; }
+
+.info-box {
+  background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.2);
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 18px;
+  font-size: 12px; color: var(--accent); display: flex; gap: 8px; align-items: flex-start;
+}
+
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal { position: relative; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 32px; width: 90%; max-width: 380px; animation: slideIn 0.3s ease; }
+.modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.modal p { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+.modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; }
+
+/* ===================== APP VIEW ===================== */
+#app-view { display: none; }
+
+.topbar {
+  position:sticky; top:0; z-index:50;
+  background: var(--surface); border-bottom:1px solid var(--border);
+  padding: 14px 20px; display:flex; align-items:center; justify-content:space-between;
+  backdrop-filter:blur(20px);
+}
+.topbar-logo {
+  font-family:'Orbitron',monospace; font-weight:900; font-size:18px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.topbar-right { display:flex; align-items:center; gap:12px; }
+.theme-btn {
+  width:36px;height:36px; border-radius:10px; border:1px solid var(--border);
+  background:var(--card); cursor:pointer; font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+}
+.avatar {
+  width:36px;height:36px; border-radius:10px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700; font-size:14px; cursor:pointer;
+}
+
+.page { display:none; animation: fadeIn 0.3s ease; }
+.page.active { display:block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.wallet-hero {
+  margin:20px; background:linear-gradient(135deg,#0a1628,#1a0a2e);
+  border:1px solid var(--border); border-radius:20px; padding:24px;
+  position:relative; overflow:hidden;
+}
+.wallet-hero::before {
+  content:''; position:absolute; top:-50px;right:-50px;
+  width:200px;height:200px; border-radius:50%;
+  background:radial-gradient(circle,rgba(0,212,255,0.15),transparent);
+}
+.wallet-label { font-size:12px; color:var(--muted); font-weight:600; letter-spacing:1px; text-transform:uppercase; }
+.wallet-bal {
+  font-family:'Orbitron',monospace; font-size:36px; font-weight:900;
+  background:linear-gradient(135deg,var(--accent),var(--accent3));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  margin: 8px 0 4px;
+}
+.wallet-bal span { font-size:18px; }
+.wallet-sub { font-size:13px; color:var(--muted); }
+.wallet-actions { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:20px; }
+.wallet-btn {
+  padding:12px; border:none; border-radius:14px;
+  font-family:'Inter',sans-serif; font-size:14px; font-weight:700;
+  cursor:pointer; transition:all 0.3s; display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.wallet-btn.deposit { background:linear-gradient(135deg,var(--accent),#0099cc); color:white; }
+.wallet-btn.withdraw { background:linear-gradient(135deg,var(--accent2),#5b21b6); color:white; }
+.wallet-btn:hover { transform:translateY(-2px); }
+
+.vip-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  background:linear-gradient(135deg,#f59e0b,#d97706);
+  color:white; border-radius:8px; padding:4px 10px;
+  font-size:11px; font-weight:700; letter-spacing:1px;
+  margin-top:10px;
+}
+
+.section { padding:0 20px 20px; }
+.section-title { font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:14px; }
+
+.stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.stat-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; }
+.stat-icon { font-size:24px; margin-bottom:8px; }
+.stat-val { font-size:20px; font-weight:800; color:var(--accent); }
+.stat-label { font-size:11px; color:var(--muted); font-weight:600; margin-top:2px; }
+
+.bottom-nav {
+  position:fixed; bottom:0; left:0; right:0; z-index:50;
+  background:var(--surface); border-top:1px solid var(--border);
+  padding:10px 20px 20px;
+  display:flex; align-items:flex-end; justify-content:space-around;
+}
+.nav-item {
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  padding:8px 16px; border-radius:14px; cursor:pointer;
+  transition:all 0.3s; color:var(--muted);
+  border:none; background:none; font-family:'Inter',sans-serif;
+}
+.nav-item.active { color:var(--accent); }
+.nav-item.active .nav-icon { background:rgba(0,212,255,0.1); }
+.nav-icon { width:44px;height:44px; border-radius:12px; display:flex;align-items:center;justify-content:center; font-size:22px; transition:all 0.3s; }
+.nav-label { font-size:10px; font-weight:600; }
+
+.nav-item.game-btn .nav-icon {
+  width:56px;height:56px; border-radius:16px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  box-shadow:0 4px 20px rgba(0,212,255,0.4);
+  animation: pulse-glow2 2s ease-in-out infinite;
+}
+@keyframes pulse-glow2 { 0%,100%{box-shadow:0 4px 20px rgba(0,212,255,0.4);} 50%{box-shadow:0 4px 40px rgba(0,212,255,0.7);} }
+.nav-item.game-btn { color:white; }
+
+.subpage { display:none; position:fixed; inset:0; z-index:60; background:var(--bg); overflow-y:auto; padding-bottom:30px; }
+.subpage.open { display:block; animation: slideUp 0.3s ease; }
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+.subpage-header {
+  display:flex; align-items:center; gap:14px;
+  padding:16px 20px; background:var(--surface);
+  border-bottom:1px solid var(--border);
+  position:sticky; top:0; z-index:10;
+}
+.back-btn { width:38px;height:38px; border-radius:10px; background:var(--card); border:1px solid var(--border); cursor:pointer; font-size:18px; display:flex; align-items:center;justify-content:center; }
+.subpage-title { font-size:18px; font-weight:700; }
+
+.form-card { margin:20px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; }
+.form-card h3 { font-size:14px; font-weight:700; margin-bottom:16px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+.input-row { margin-bottom:16px; }
+.input-row label { display:block; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px; }
+.input-row input, .input-row select, .input-row textarea {
+  width:100%; padding:12px 14px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:12px; color:var(--text);
+  font-family:'Inter',sans-serif; font-size:14px; outline:none; transition:all 0.3s;
+}
+.input-row input:focus, .input-row select:focus, .input-row textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(0,212,255,0.1); }
+.input-row textarea { resize:none; height:80px; }
+
+.range-info { display:flex; gap:8px; margin-bottom:16px; }
+.range-badge { flex:1; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:10px; text-align:center; }
+.range-badge .val { font-size:16px; font-weight:800; color:var(--accent); }
+.range-badge .lbl { font-size:10px; color:var(--muted); font-weight:600; margin-top:2px; }
+
+.upload-area { border:2px dashed var(--border); border-radius:12px; padding:24px; text-align:center; cursor:pointer; transition:all 0.3s; margin-bottom:16px; position:relative; }
+.upload-area:hover { border-color:var(--accent); background:rgba(0,212,255,0.03); }
+.upload-area input { position:absolute;inset:0;opacity:0;cursor:pointer; }
+.upload-area .icon { font-size:36px; margin-bottom:8px; }
+.upload-area .text { font-size:13px; color:var(--muted); }
+.upload-preview { max-width:100%; border-radius:10px; margin-top:12px; display:none; }
+
+.status-badge { display:inline-block; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; letter-spacing:0.5px; }
+.status-pending { background:rgba(245,158,11,0.1); color:var(--accent3); border:1px solid rgba(245,158,11,0.3); }
+.status-success { background:rgba(16,185,129,0.1); color:var(--success); border:1px solid rgba(16,185,129,0.3); }
+.status-cancel { background:rgba(239,68,68,0.1); color:var(--danger); border:1px solid rgba(239,68,68,0.3); }
+
+.tx-list { margin:0 20px; }
+.tx-item { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:10px; display:flex; align-items:center; gap:12px; }
+.tx-icon { width:40px;height:40px; border-radius:10px; display:flex;align-items:center;justify-content:center; font-size:18px; flex-shrink:0; }
+.tx-icon.dep { background:rgba(0,212,255,0.1); }
+.tx-icon.with { background:rgba(124,58,237,0.1); }
+.tx-icon.ref { background:rgba(16,185,129,0.1); }
+.tx-info { flex:1; }
+.tx-desc { font-size:14px; font-weight:600; }
+.tx-date { font-size:11px; color:var(--muted); margin-top:2px; }
+.tx-amount { font-size:16px; font-weight:800; }
+.tx-amount.pos { color:var(--success); }
+.tx-amount.neg { color:var(--danger); }
+
+.game-card { margin:20px; background:linear-gradient(135deg,#0a1628,#1a0a2e); border:1px solid var(--border); border-radius:20px; padding:24px; text-align:center; }
+.click-counter {
+  font-family:'Orbitron',monospace; font-size:48px; font-weight:900;
+  background:linear-gradient(135deg,var(--accent),var(--accent3));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  margin: 16px 0;
+}
+.click-btn {
+  width:120px; height:120px; border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border:none; cursor:pointer; font-size:40px;
+  box-shadow:0 0 40px rgba(0,212,255,0.4);
+  transition:all 0.15s; margin:20px 0;
+  display:flex;align-items:center;justify-content:center;
+  margin-left:auto;margin-right:auto;
+  animation: pulse-glow2 2s infinite;
+}
+.click-btn:active { transform:scale(0.9); }
+.progress-bar-wrap { background:var(--surface); border-radius:8px; height:10px; margin:12px 0; overflow:hidden; border:1px solid var(--border); }
+.progress-bar { height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2)); border-radius:8px; transition:width 0.3s; }
+.earn-label { font-size:13px; color:var(--muted); }
+
+.refer-card { margin:20px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; }
+.code-display { background:var(--surface); border:2px solid var(--accent); border-radius:12px; padding:16px; text-align:center; margin:16px 0; position:relative; }
+.code-val { font-family:'Orbitron',monospace; font-size:28px; font-weight:900; color:var(--accent); letter-spacing:4px; }
+.copy-btn {
+  position:absolute;top:50%;right:14px;transform:translateY(-50%);
+  background:var(--accent); border:none; color:white;
+  border-radius:8px; padding:6px 12px; font-size:12px; font-weight:700;
+  cursor:pointer; transition:all 0.2s;
+}
+.copy-btn:active { transform:translateY(-50%) scale(0.95); }
+.refer-info { font-size:13px; color:var(--muted); margin-bottom:16px; line-height:1.7; }
+
+.gift-card { margin:0 20px 20px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; }
+.gift-card h3 { font-size:14px; font-weight:700; color:var(--accent3); margin-bottom:12px; }
+
+.profile-header {
+  margin:20px; background:linear-gradient(135deg,#0a1628,#1a0a2e);
+  border:1px solid var(--border); border-radius:20px; padding:24px;
+  display:flex; align-items:center; gap:16px;
+}
+.profile-avatar {
+  width:64px;height:64px; border-radius:18px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px; flex-shrink:0;
+}
+.profile-name { font-size:20px; font-weight:800; }
+.profile-id { font-size:12px; color:var(--muted); margin-top:4px; }
+
+.vip-table { margin:0 20px 20px; }
+.vip-row { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:8px; display:flex; align-items:center; gap:12px; }
+.vip-row.active-vip { border-color:var(--accent3); background:rgba(245,158,11,0.05); }
+.vip-level-num {
+  width:36px;height:36px; border-radius:10px;
+  background:linear-gradient(135deg,var(--accent3),#d97706);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900; font-size:14px; color:white; flex-shrink:0;
+}
+.vip-info { flex:1; }
+.vip-deposit { font-size:14px; font-weight:700; }
+.vip-bonus { font-size:12px; color:var(--success); font-weight:600; }
+.vip-status { font-size:11px; color:var(--accent3); font-weight:700; }
+
+.profile-options { margin:0 20px; }
+.profile-opt {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:12px; padding:16px; margin-bottom:10px;
+  display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.2s;
+}
+.profile-opt:hover { border-color:var(--accent); }
+.profile-opt .opt-icon { font-size:22px; width:40px;text-align:center; }
+.profile-opt .opt-label { flex:1; font-size:14px; font-weight:600; }
+.profile-opt .opt-arrow { color:var(--muted); font-size:16px; }
+
+.toggle-wrap { display:flex;align-items:center;gap:10px; }
+.toggle { position:relative; width:44px;height:24px; background:var(--border); border-radius:12px; cursor:pointer; transition:background 0.3s; }
+.toggle.on { background:var(--accent); }
+.toggle::after { content:''; position:absolute; width:18px;height:18px; background:white; border-radius:9px; top:3px; left:3px; transition:left 0.3s; }
+.toggle.on::after { left:23px; }
+
+.toast {
+  position:fixed; top:70px; left:50%; transform:translateX(-50%) translateY(-20px);
+  z-index:999; padding:12px 20px; border-radius:12px;
+  font-size:14px; font-weight:600; opacity:0; transition:all 0.3s;
+  white-space:nowrap;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.toast.success { background:rgba(16,185,129,0.9); color:white; }
+.toast.error { background:rgba(239,68,68,0.9); color:white; }
+.toast.info { background:rgba(0,212,255,0.9); color:var(--bg); }
+
+.empty-state { text-align:center; padding:40px 20px; color:var(--muted); }
+.empty-state .icon { font-size:48px; margin-bottom:12px; }
+.empty-state p { font-size:14px; }
+
+.float-text {
+  position:fixed; pointer-events:none; z-index:999;
+  font-weight:900; color:var(--success); font-size:16px;
+  animation: floatUp 0.8s ease forwards;
+}
+@keyframes floatUp { 0%{opacity:1;transform:translateY(0);} 100%{opacity:0;transform:translateY(-60px);} }
+</style>
+</head>
+<body>
+
+<!-- ======================================================= -->
+<!-- AUTH VIEW (Login / Sign Up)                              -->
+<!-- ======================================================= -->
+<div id="auth-view">
+  <div class="bg-orbs">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+  </div>
+  <div class="grid-bg"></div>
+
+  <div class="auth-container">
+    <div class="logo">
+      <div class="logo-icon">💎</div>
+      <h1>CASHPLUS</h1>
+      <p>Premium Earning Platform</p>
+    </div>
+
+    <div class="card">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('login')">Sign In</button>
+        <button class="tab" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+
+      <!-- LOGIN PANEL -->
+      <div class="panel active" id="panel-login">
+        <div class="input-group">
+          <label>Email / Username</label>
+          <div class="input-wrap">
+            <span class="icon">📧</span>
+            <input type="text" id="login-user" placeholder="Enter email or username">
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <div class="input-wrap">
+            <span class="icon">🔒</span>
+            <input type="password" id="login-pass" placeholder="Enter password">
+            <button class="eye-btn" onclick="togglePw('login-pass',this)">👁️</button>
+          </div>
+        </div>
+        <div class="forgot">
+          <a href="#" onclick="openForgot()">Forgot Password?</a>
+        </div>
+        <button class="btn-primary" onclick="doLogin()">🚀 Sign In</button>
+        <div class="divider"><span>OR</span></div>
+        <button class="btn-primary" style="background:linear-gradient(135deg,#1e3a5f,#0a2040);box-shadow:none;" onclick="switchTab('signup')">Create New Account</button>
+      </div>
+
+      <!-- SIGNUP PANEL -->
+      <div class="panel" id="panel-signup">
+        <div class="input-group">
+          <label>Username</label>
+          <div class="input-wrap">
+            <span class="icon">👤</span>
+            <input type="text" id="su-username" placeholder="Choose a username">
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Email</label>
+          <div class="input-wrap">
+            <span class="icon">📧</span>
+            <input type="email" id="su-email" placeholder="Enter your email">
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <div class="input-wrap">
+            <span class="icon">🔒</span>
+            <input type="password" id="su-pass" placeholder="Create password (min 6 chars)">
+            <button class="eye-btn" onclick="togglePw('su-pass',this)">👁️</button>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Refer Code <span style="color:var(--muted)">(Optional – 8 digit)</span></label>
+          <div class="input-wrap">
+            <span class="icon">🎁</span>
+            <input type="text" id="su-refer" placeholder="Enter 8-digit refer code" maxlength="8">
+          </div>
+        </div>
+        <div class="info-box">
+          ℹ️ Using a refer code gives your referrer a <strong>$0.20 bonus</strong> instantly!
+        </div>
+        <button class="btn-primary" onclick="doSignup()">✨ Create Account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORGOT PASSWORD MODAL -->
+  <div class="modal-overlay" id="forgot-modal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeForgot()">✕</button>
+      <h3>🔑 Reset Password</h3>
+      <p>Enter your registered email. We'll send recovery instructions.</p>
+      <div class="input-group">
+        <label>Email Address</label>
+        <div class="input-wrap">
+          <span class="icon">📧</span>
+          <input type="email" id="forgot-email" placeholder="Enter your email">
+        </div>
+      </div>
+      <button class="btn-primary" onclick="sendReset()" style="margin-top:8px">Send Reset Link</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================= -->
+<!-- APP VIEW (Dashboard / Menu)                              -->
+<!-- ======================================================= -->
+<div id="app-view">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">💎 CASHPLUS</div>
+  <div class="topbar-right">
+    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">🌙</button>
+    <div class="avatar" id="avatar-btn">CP</div>
+  </div>
+</div>
+
+<!-- ================= HOME PAGE ================= -->
+<div class="page active" id="page-home">
+  <div class="wallet-hero">
+    <div class="wallet-label">Total Balance</div>
+    <div class="wallet-bal"><span>$</span><span id="home-balance">0.00</span></div>
+    <div class="wallet-sub">Available for withdrawal</div>
+    <div class="vip-badge" id="home-vip">⭐ VIP Level 0</div>
+    <div class="wallet-actions">
+      <button class="wallet-btn deposit" onclick="openSubpage('deposit')">💳 Deposit</button>
+      <button class="wallet-btn withdraw" onclick="openSubpage('withdraw')">🏧 Withdraw</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Overview</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📥</div>
+        <div class="stat-val" id="home-total-dep">$0.00</div>
+        <div class="stat-label">Total Deposited</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📤</div>
+        <div class="stat-val" id="home-total-with">$0.00</div>
+        <div class="stat-label">Total Withdrawn</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Recent Transactions</div>
+    <div id="home-tx-list">
+      <div class="empty-state"><div class="icon">💫</div><p>No transactions yet</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= GAME PAGE ================= -->
+<div class="page" id="page-game">
+  <div class="game-card">
+    <div style="font-size:13px;color:var(--muted);font-weight:700;letter-spacing:1px;text-transform:uppercase;">Click to Earn</div>
+    <div class="click-counter"><span id="click-count">0</span><span style="font-size:18px">/500</span></div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="click-progress" style="width:0%"></div>
+    </div>
+    <div class="earn-label">Complete 500 clicks → Earn <strong style="color:var(--accent)">$0.10</strong></div>
+    <button class="click-btn" onclick="doClick(event)" id="click-btn">👆</button>
+    <div style="margin-top:8px;font-size:13px;color:var(--muted)">
+      Sessions earned: <strong style="color:var(--accent3)" id="click-earnings">$0.00</strong>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Session Stats</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">🖱️</div>
+        <div class="stat-val" id="total-clicks-done">0</div>
+        <div class="stat-label">Total Clicks Today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-val" id="game-balance-show">$0.00</div>
+        <div class="stat-label">Current Balance</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= REFER PAGE ================= -->
+<div class="page" id="page-refer">
+  <div class="refer-card">
+    <div class="section-title" style="margin-bottom:8px">Your Refer Code</div>
+    <div class="refer-info">Share your 8-digit code with friends. When they sign up using your code, you earn <strong style="color:var(--success)">$0.20</strong> instantly!</div>
+    <div class="code-display">
+      <div class="code-val" id="refer-code-display">--------</div>
+      <button class="copy-btn" onclick="copyCode()">COPY</button>
+    </div>
+    <div id="refer-stats" style="display:flex;gap:12px;margin-top:8px">
+      <div class="stat-card" style="flex:1">
+        <div class="stat-icon">👥</div>
+        <div class="stat-val" id="refer-count">0</div>
+        <div class="stat-label">Total Referrals</div>
+      </div>
+      <div class="stat-card" style="flex:1">
+        <div class="stat-icon">💵</div>
+        <div class="stat-val" id="refer-earned">$0.00</div>
+        <div class="stat-label">Refer Earnings</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="gift-card">
+    <h3>🎁 Claim Gift Code</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Enter a gift code to claim bonus dollars instantly!</p>
+    <div class="input-row">
+      <input type="text" id="gift-code-input" placeholder="Enter gift code..." style="text-transform:uppercase;letter-spacing:2px;">
+    </div>
+    <button class="wallet-btn deposit" style="width:100%;border-radius:12px;padding:13px;" onclick="claimGift()">🎉 Claim Gift Code</button>
+  </div>
+</div>
+
+<!-- ================= PROFILE PAGE ================= -->
+<div class="page" id="page-profile">
+  <div class="profile-header">
+    <div class="profile-avatar">👤</div>
+    <div>
+      <div class="profile-name" id="prof-name">User</div>
+      <div class="profile-id">ID: <strong id="prof-id">--------</strong></div>
+      <div class="vip-badge" id="prof-vip" style="margin-top:8px">⭐ VIP 0</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">VIP Levels</div>
+  </div>
+  <div class="vip-table" id="vip-table"></div>
+
+  <div class="section" style="padding-bottom:8px">
+    <div class="section-title">Settings</div>
+  </div>
+  <div class="profile-options">
+    <div class="profile-opt" onclick="openSubpage('txhistory')">
+      <div class="opt-icon">📊</div>
+      <div class="opt-label">Transaction History</div>
+      <div class="opt-arrow">›</div>
+    </div>
+    <div class="profile-opt">
+      <div class="opt-icon">🌗</div>
+      <div class="opt-label">Dark / Light Mode</div>
+      <div class="opt-arrow">
+        <div class="toggle" id="theme-toggle" onclick="toggleTheme()"></div>
+      </div>
+    </div>
+    <div class="profile-opt" onclick="doLogout()" style="border-color:rgba(239,68,68,0.3)">
+      <div class="opt-icon">🚪</div>
+      <div class="opt-label" style="color:var(--danger)">Logout</div>
+      <div class="opt-arrow">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== BOTTOM NAV =================== -->
+<div class="bottom-nav">
+  <button class="nav-item active" onclick="goPage('home')" id="nav-home">
+    <div class="nav-icon">🏠</div>
+    <div class="nav-label">Home</div>
+  </button>
+  <button class="nav-item" onclick="goPage('refer')" id="nav-refer">
+    <div class="nav-icon">🔗</div>
+    <div class="nav-label">Refer</div>
+  </button>
+  <button class="nav-item game-btn" onclick="goPage('game')" id="nav-game">
+    <div class="nav-icon">🎮</div>
+    <div class="nav-label">Play</div>
+  </button>
+  <button class="nav-item" onclick="goPage('profile')" id="nav-profile">
+    <div class="nav-icon">👤</div>
+    <div class="nav-label">Profile</div>
+  </button>
+</div>
+
+<!-- =================== SUBPAGES =================== -->
+
+<!-- DEPOSIT -->
+<div class="subpage" id="sub-deposit">
+  <div class="subpage-header">
+    <button class="back-btn" onclick="closeSubpage('deposit')">←</button>
+    <div class="subpage-title">💳 Deposit</div>
+  </div>
+  <div class="form-card">
+    <h3>BNB Smart Chain Deposit</h3>
+    <div class="range-info">
+      <div class="range-badge"><div class="val">$10</div><div class="lbl">Minimum</div></div>
+      <div class="range-badge"><div class="val">$5,000</div><div class="lbl">Maximum</div></div>
+    </div>
+    <div class="input-row">
+      <label>Deposit Amount (USD)</label>
+      <input type="number" id="dep-amount" placeholder="Enter amount (10–5000)" min="10" max="5000">
+    </div>
+    <div class="input-row">
+      <label>Transaction / UUID Code</label>
+      <input type="text" id="dep-txid" placeholder="Enter BNB transaction hash">
+    </div>
+    <div class="input-row">
+      <label>Screenshot Proof</label>
+      <div class="upload-area" onclick="document.getElementById('dep-ss').click()">
+        <input type="file" id="dep-ss" accept="image/*" onchange="previewImg(this,'dep-preview')">
+        <div class="icon">📸</div>
+        <div class="text">Tap to upload transaction screenshot</div>
+        <img id="dep-preview" class="upload-preview">
+      </div>
+    </div>
+    <div style="background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--accent)">
+      📋 Send BNB to our wallet and upload the screenshot. Admin will confirm within 24 hours.
+    </div>
+    <button class="wallet-btn deposit" style="width:100%;border-radius:12px;padding:14px;font-size:15px" onclick="submitDeposit()">Submit Deposit Request</button>
+  </div>
+  <div class="section">
+    <div class="section-title">Deposit History</div>
+    <div id="dep-history-list"></div>
+  </div>
+</div>
+
+<!-- WITHDRAW -->
+<div class="subpage" id="sub-withdraw">
+  <div class="subpage-header">
+    <button class="back-btn" onclick="closeSubpage('withdraw')">←</button>
+    <div class="subpage-title">🏧 Withdraw</div>
+  </div>
+  <div class="form-card">
+    <h3>BNB Smart Chain Withdrawal</h3>
+    <div class="range-info">
+      <div class="range-badge"><div class="val">$200</div><div class="lbl">Minimum</div></div>
+      <div class="range-badge"><div class="val">$10,000</div><div class="lbl">Maximum</div></div>
+    </div>
+    <div class="input-row">
+      <label>Withdraw Amount (USD)</label>
+      <input type="number" id="with-amount" placeholder="Enter amount (200–10000)" min="200" max="10000">
+    </div>
+    <div class="input-row">
+      <label>BNB Wallet Address</label>
+      <input type="text" id="with-wallet" placeholder="Enter your BNB Smart Chain wallet address">
+    </div>
+    <div style="background:rgba(124,58,237,0.05);border:1px solid rgba(124,58,237,0.3);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:#a78bfa">
+      ⚠️ Double-check your wallet address. Withdrawals are processed within 24–48 hours.
+    </div>
+    <button class="wallet-btn withdraw" style="width:100%;border-radius:12px;padding:14px;font-size:15px" onclick="submitWithdraw()">Submit Withdraw Request</button>
+  </div>
+  <div class="section">
+    <div class="section-title">Withdrawal History</div>
+    <div id="with-history-list"></div>
+  </div>
+</div>
+
+<!-- TX HISTORY -->
+<div class="subpage" id="sub-txhistory">
+  <div class="subpage-header">
+    <button class="back-btn" onclick="closeSubpage('txhistory')">←</button>
+    <div class="subpage-title">📊 Transaction History</div>
+  </div>
+  <div style="padding:16px 20px">
+    <select id="tx-filter" onchange="renderTxHistory()" style="width:100%;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;outline:none;margin-bottom:16px">
+      <option value="all">All Transactions</option>
+      <option value="deposit">Deposits Only</option>
+      <option value="withdraw">Withdrawals Only</option>
+      <option value="game">Game Earnings</option>
+      <option value="refer">Refer Bonuses</option>
+    </select>
+  </div>
+  <div class="tx-list" id="tx-history-list"></div>
+</div>
+
+</div><!-- /#app-view -->
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// SHARED STORAGE HELPERS
+// ============================================================
+function getUsers() { return JSON.parse(localStorage.getItem('cp_users') || '{}'); }
+function saveUsers(u) { localStorage.setItem('cp_users', JSON.stringify(u)); }
+function getAdmin() { return JSON.parse(localStorage.getItem('cp_admin') || '{"deposits":[],"withdrawals":[],"giftcodes":{}}'); }
+function saveAdmin(a) { localStorage.setItem('cp_admin', JSON.stringify(a)); }
+function genId() { return Math.floor(10000000 + Math.random() * 90000000).toString(); }
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = (type==='success'?'✅ ':type==='error'?'❌ ':'') + msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ============================================================
+// AUTH VIEW LOGIC
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (tab==='login'&&i===0)||(tab==='signup'&&i===1)));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+  else { inp.type = 'password'; btn.textContent = '👁️'; }
+}
+
+function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if (!user || !pass) return showToast('Please fill all fields', 'error');
+
+  // Admin check
+  if (user === 'admin' && pass === 'admin123') {
+    localStorage.setItem('cp_current', 'admin');
+    showToast('Welcome Admin!');
+    setTimeout(() => window.location.href = 'admin.html', 1000);
+    return;
+  }
+
+  const users = getUsers();
+  const found = Object.values(users).find(u => (u.username===user || u.email===user) && u.password===pass);
+  if (!found) return showToast('Invalid credentials', 'error');
+  if (found.blocked) return showToast('Your account is blocked. Contact support.', 'error');
+
+  localStorage.setItem('cp_current', found.id);
+  showToast('Welcome back, ' + found.username + '!');
+  setTimeout(() => enterApp(found.id), 800);
+}
+
+function doSignup() {
+  const username = document.getElementById('su-username').value.trim();
+  const email = document.getElementById('su-email').value.trim();
+  const pass = document.getElementById('su-pass').value;
+  const refer = document.getElementById('su-refer').value.trim();
+
+  if (!username || !email || !pass) return showToast('Please fill all fields', 'error');
+  if (pass.length < 6) return showToast('Password must be 6+ chars', 'error');
+  if (refer && refer.length !== 8) return showToast('Refer code must be 8 digits', 'error');
+
+  const users = getUsers();
+  if (Object.values(users).find(u => u.email===email)) return showToast('Email already registered', 'error');
+  if (Object.values(users).find(u => u.username===username)) return showToast('Username taken', 'error');
+
+  if (refer) {
+    const referrer = Object.values(users).find(u => u.id===refer);
+    if (!referrer) return showToast('Invalid refer code', 'error');
+    users[referrer.id].balance = (users[referrer.id].balance || 0) + 0.20;
+    users[referrer.id].transactions = users[referrer.id].transactions || [];
+    users[referrer.id].transactions.push({ type:'refer', amount:0.20, desc:'Refer bonus', date: new Date().toISOString() });
+  }
+
+  const id = genId();
+  users[id] = { id, username, email, password: pass, balance: 0, vip: 0,
+    totalDeposit: 0, totalWithdraw: 0, transactions: [], clickCount: 0,
+    referBy: refer || null, createdAt: new Date().toISOString(), blocked: false };
+  saveUsers(users);
+
+  localStorage.setItem('cp_current', id);
+  showToast('Account created! Welcome ' + username);
+  setTimeout(() => enterApp(id), 900);
+}
+
+function openForgot() { document.getElementById('forgot-modal').classList.add('open'); }
+function closeForgot() { document.getElementById('forgot-modal').classList.remove('open'); }
+
+function sendReset() {
+  const email = document.getElementById('forgot-email').value.trim();
+  if (!email) return showToast('Enter email', 'error');
+  showToast('Reset link sent (demo mode)');
+  closeForgot();
+}
+
+function resetAuthForm() {
+  ['login-user','login-pass','su-username','su-email','su-pass','su-refer'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  switchTab('login');
+}
+
+// ============================================================
+// VIEW SWITCHING (replaces old page-to-page redirects)
+// ============================================================
+let cur = null; // id of currently logged-in user ('admin' is handled separately)
+
+function enterApp(userId) {
+  cur = userId;
+  document.getElementById('auth-view').style.display = 'none';
+  document.getElementById('app-view').style.display = 'block';
+  init();
+}
+
+function showAuthView() {
+  cur = null;
+  document.getElementById('app-view').style.display = 'none';
+  document.getElementById('auth-view').style.display = 'flex';
+  resetAuthForm();
+}
+
+// ============================================================
+// APP DATA HELPERS
+// ============================================================
+function getMe() { return getUsers()[cur]; }
+function saveMe(me) { const u=getUsers(); u[cur]=me; saveUsers(u); }
+
+const VIP_LEVELS = [
+  {level:1,deposit:100,bonus:4},
+  {level:2,deposit:250,bonus:8},
+  {level:3,deposit:350,bonus:12},
+  {level:4,deposit:550,bonus:16},
+  {level:5,deposit:750,bonus:34},
+  {level:6,deposit:999,bonus:66},
+  {level:7,deposit:1500,bonus:79},
+  {level:8,deposit:4500,bonus:150},
+  {level:9,deposit:8000,bonus:250},
+  {level:10,deposit:10000,bonus:500},
+];
+function getVipLevel(totalDep) {
+  let lvl=0;
+  for(const v of VIP_LEVELS) { if(totalDep>=v.deposit) lvl=v.level; }
+  return lvl;
+}
+
+// ============ INIT (called when entering the app) ============
+function init() {
+  const me = getMe();
+  if (!me) { showAuthView(); return; }
+  if (me.blocked) { showToast('Your account is blocked. Contact support.', 'error'); doLogout(); return; }
+
+  const initials = me.username.slice(0,2).toUpperCase();
+  document.getElementById('avatar-btn').textContent = initials;
+
+  goPage('home');
+  buildVipTable();
+  refreshRefer();
+  refreshProfile();
+  refreshGame();
+  loadTheme();
+}
+
+function refreshHome() {
+  const me = getMe();
+  document.getElementById('home-balance').textContent = (me.balance||0).toFixed(2);
+  document.getElementById('home-total-dep').textContent = '$'+(me.totalDeposit||0).toFixed(2);
+  document.getElementById('home-total-with').textContent = '$'+(me.totalWithdraw||0).toFixed(2);
+  const vip = getVipLevel(me.totalDeposit||0);
+  document.getElementById('home-vip').textContent = '⭐ VIP Level '+vip;
+  renderRecentTx();
+}
+
+function renderRecentTx() {
+  const me = getMe();
+  const txs = (me.transactions||[]).slice(-5).reverse();
+  const el = document.getElementById('home-tx-list');
+  if(!txs.length) { el.innerHTML='<div class="empty-state"><div class="icon">💫</div><p>No transactions yet</p></div>'; return; }
+  el.innerHTML = txs.map(t=>txItem(t)).join('');
+}
+
+function txItem(t) {
+  const isPos = t.type!=='withdraw';
+  const icon = t.type==='deposit'?'💳':t.type==='withdraw'?'🏧':t.type==='refer'?'🔗':t.type==='gift'?'🎁':'🎮';
+  const iconClass = t.type==='deposit'?'dep':t.type==='withdraw'?'with':'ref';
+  const status = t.status ? `<span class="status-badge status-${t.status||'success'}">${t.status||'Success'}</span>` : '';
+  return `<div class="tx-item">
+    <div class="tx-icon ${iconClass}">${icon}</div>
+    <div class="tx-info">
+      <div class="tx-desc">${t.desc||t.type}</div>
+      <div class="tx-date">${new Date(t.date).toLocaleString()} ${status}</div>
+    </div>
+    <div class="tx-amount ${isPos?'pos':'neg'}">${isPos?'+':'-'}$${Math.abs(t.amount).toFixed(2)}</div>
+  </div>`;
+}
+
+// ============ NAVIGATION ============
+function goPage(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  if(name==='home') refreshHome();
+  if(name==='profile') refreshProfile();
+  if(name==='refer') refreshRefer();
+  if(name==='game') refreshGame();
+}
+
+function openSubpage(name) {
+  document.getElementById('sub-'+name).classList.add('open');
+  if(name==='deposit') renderDepHistory();
+  if(name==='withdraw') renderWithHistory();
+  if(name==='txhistory') renderTxHistory();
+}
+function closeSubpage(name) {
+  document.getElementById('sub-'+name).classList.remove('open');
+  refreshHome();
+}
+
+// ============ DEPOSIT ============
+function submitDeposit() {
+  const me = getMe();
+  const amt = parseFloat(document.getElementById('dep-amount').value);
+  const txid = document.getElementById('dep-txid').value.trim();
+  const file = document.getElementById('dep-ss').files[0];
+  if(!amt||amt<10||amt>5000) return showToast('Amount must be $10–$5,000','error');
+  if(!txid) return showToast('Enter transaction ID','error');
+  if(!file) return showToast('Upload screenshot proof','error');
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const admin = getAdmin();
+    const req = {
+      id: Date.now().toString(), userId: cur, username: me.username,
+      amount: amt, txid, screenshot: e.target.result,
+      status: 'pending', date: new Date().toISOString()
+    };
+    admin.deposits.push(req);
+    saveAdmin(admin);
+
+    me.transactions = me.transactions||[];
+    me.transactions.push({ type:'deposit', amount:amt, desc:'Deposit Request', status:'pending', date:req.date, reqId:req.id });
+    saveMe(me);
+
+    document.getElementById('dep-amount').value='';
+    document.getElementById('dep-txid').value='';
+    document.getElementById('dep-ss').value='';
+    document.getElementById('dep-preview').style.display='none';
+    showToast('Deposit request sent! Pending admin approval 🚀','info');
+    renderDepHistory();
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderDepHistory() {
+  const admin = getAdmin();
+  const myDeps = admin.deposits.filter(d=>d.userId===cur).reverse();
+  const el = document.getElementById('dep-history-list');
+  if(!myDeps.length) { el.innerHTML='<div class="empty-state"><div class="icon">📭</div><p>No deposit history</p></div>'; return; }
+  el.innerHTML = myDeps.map(d=>`
+    <div class="tx-item">
+      <div class="tx-icon dep">💳</div>
+      <div class="tx-info">
+        <div class="tx-desc">Deposit Request</div>
+        <div class="tx-date">${new Date(d.date).toLocaleString()} <span class="status-badge status-${d.status}">${d.status}</span></div>
+      </div>
+      <div class="tx-amount pos">+$${d.amount.toFixed(2)}</div>
+    </div>`).join('');
+}
+
+// ============ WITHDRAW ============
+function submitWithdraw() {
+  const me = getMe();
+  const amt = parseFloat(document.getElementById('with-amount').value);
+  const wallet = document.getElementById('with-wallet').value.trim();
+  if(!amt||amt<200||amt>10000) return showToast('Amount must be $200–$10,000','error');
+  if(!wallet) return showToast('Enter BNB wallet address','error');
+  if((me.balance||0) < amt) return showToast('Insufficient balance','error');
+
+  const admin = getAdmin();
+  const req = {
+    id: Date.now().toString(), userId: cur, username: me.username,
+    amount: amt, wallet, status:'pending', date: new Date().toISOString()
+  };
+  admin.withdrawals.push(req);
+  saveAdmin(admin);
+
+  me.balance = (me.balance||0) - amt;
+  me.transactions = me.transactions||[];
+  me.transactions.push({ type:'withdraw', amount:amt, desc:'Withdraw Request', status:'pending', date:req.date, reqId:req.id });
+  saveMe(me);
+
+  document.getElementById('with-amount').value='';
+  document.getElementById('with-wallet').value='';
+  showToast('Withdraw request submitted! Processing soon 🏧','info');
+  renderWithHistory();
+  refreshHome();
+}
+
+function renderWithHistory() {
+  const admin = getAdmin();
+  const myW = admin.withdrawals.filter(w=>w.userId===cur).reverse();
+  const el = document.getElementById('with-history-list');
+  if(!myW.length) { el.innerHTML='<div class="empty-state"><div class="icon">📭</div><p>No withdrawal history</p></div>'; return; }
+  el.innerHTML = myW.map(w=>`
+    <div class="tx-item">
+      <div class="tx-icon with">🏧</div>
+      <div class="tx-info">
+        <div class="tx-desc">Withdraw → ${w.wallet.slice(0,8)}...${w.wallet.slice(-6)}</div>
+        <div class="tx-date">${new Date(w.date).toLocaleString()} <span class="status-badge status-${w.status}">${w.status}</span></div>
+      </div>
+      <div class="tx-amount neg">-$${w.amount.toFixed(2)}</div>
+    </div>`).join('');
+}
+
+// ============ TX HISTORY ============
+function renderTxHistory() {
+  const me = getMe();
+  const filter = document.getElementById('tx-filter').value;
+  let txs = (me.transactions||[]).slice().reverse();
+  if(filter!=='all') txs = txs.filter(t=>t.type===filter);
+  const el = document.getElementById('tx-history-list');
+  if(!txs.length) { el.innerHTML='<div class="empty-state"><div class="icon">📋</div><p>No transactions found</p></div>'; return; }
+  el.innerHTML = txs.map(t=>txItem(t)).join('');
+}
+
+// ============ GAME ============
+let sessionClicks = 0;
+let sessionEarnings = 0;
+
+function refreshGame() {
+  const me = getMe();
+  if (!me) return;
+  document.getElementById('game-balance-show').textContent = '$'+(me.balance||0).toFixed(2);
+  document.getElementById('total-clicks-done').textContent = sessionClicks;
+  document.getElementById('click-count').textContent = sessionClicks % 500;
+  document.getElementById('click-progress').style.width = ((sessionClicks%500)/500*100)+'%';
+  document.getElementById('click-earnings').textContent = '$'+sessionEarnings.toFixed(2);
+}
+
+function doClick(e) {
+  sessionClicks++;
+  document.getElementById('click-count').textContent = sessionClicks%500;
+  document.getElementById('click-progress').style.width = ((sessionClicks%500)/500*100)+'%';
+  document.getElementById('total-clicks-done').textContent = sessionClicks;
+
+  const el = document.createElement('div');
+  el.className='float-text'; el.textContent='+0.0002¢';
+  el.style.left=e.clientX+'px'; el.style.top=e.clientY+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 800);
+
+  if(sessionClicks%500===0) {
+    const me = getMe();
+    me.balance = (me.balance||0) + 0.10;
+    sessionEarnings += 0.10;
+    me.transactions = me.transactions||[];
+    me.transactions.push({ type:'game', amount:0.10, desc:'Game Reward (500 clicks)', date:new Date().toISOString() });
+    saveMe(me);
+    showToast('🎉 +$0.10 earned! Keep clicking!','info');
+    document.getElementById('game-balance-show').textContent='$'+(me.balance).toFixed(2);
+    document.getElementById('click-earnings').textContent='$'+sessionEarnings.toFixed(2);
+  }
+}
+
+// ============ REFER ============
+function refreshRefer() {
+  const me = getMe();
+  if (!me) return;
+  document.getElementById('refer-code-display').textContent = me.id;
+  const users = getUsers();
+  const refs = Object.values(users).filter(u=>u.referBy===me.id);
+  const refEarned = refs.length * 0.20;
+  document.getElementById('refer-count').textContent = refs.length;
+  document.getElementById('refer-earned').textContent = '$'+refEarned.toFixed(2);
+}
+
+function copyCode() {
+  const code = document.getElementById('refer-code-display').textContent;
+  navigator.clipboard.writeText(code).then(()=>showToast('Refer code copied!','info'));
+}
+
+function claimGift() {
+  const code = document.getElementById('gift-code-input').value.trim().toUpperCase();
+  if(!code) return showToast('Enter a gift code','error');
+  const admin = getAdmin();
+  const gc = admin.giftcodes[code];
+  if(!gc) return showToast('Invalid gift code','error');
+
+  const me = getMe();
+  if(!gc.amount||gc.amount<=0) return showToast('Gift code is empty','error');
+  if(gc.maxClaims && (gc.claimed||[]).length>=gc.maxClaims) return showToast('Gift code fully claimed','error');
+  if((gc.claimed||[]).includes(cur)) return showToast('Already claimed this code','error');
+
+  me.balance = (me.balance||0) + gc.amount;
+  me.transactions = me.transactions||[];
+  me.transactions.push({ type:'gift', amount:gc.amount, desc:`Gift Code: ${code}`, date:new Date().toISOString() });
+  saveMe(me);
+
+  gc.claimed = gc.claimed||[];
+  gc.claimed.push(cur);
+  admin.giftcodes[code] = gc;
+  saveAdmin(admin);
+
+  document.getElementById('gift-code-input').value='';
+  showToast(`🎁 Claimed $${gc.amount.toFixed(2)}!`,'info');
+  refreshHome();
+}
+
+// ============ PROFILE ============
+function refreshProfile() {
+  const me = getMe();
+  if (!me) return;
+  document.getElementById('prof-name').textContent = me.username;
+  document.getElementById('prof-id').textContent = me.id;
+  const vip = getVipLevel(me.totalDeposit||0);
+  document.getElementById('prof-vip').textContent = '⭐ VIP '+vip;
+}
+
+function buildVipTable() {
+  const me = getMe();
+  if (!me) return;
+  const curVip = getVipLevel(me.totalDeposit||0);
+  document.getElementById('vip-table').innerHTML = VIP_LEVELS.map(v=>`
+    <div class="vip-row ${v.level===curVip?'active-vip':''}">
+      <div class="vip-level-num">${v.level}</div>
+      <div class="vip-info">
+        <div class="vip-deposit">Deposit: $${v.deposit.toLocaleString()}</div>
+        <div class="vip-bonus">Bonus: +$${v.bonus}</div>
+      </div>
+      ${v.level===curVip?'<div class="vip-status">✓ CURRENT</div>':v.level<curVip?'<div style="color:var(--success);font-size:12px">✓ Done</div>':''}
+    </div>`).join('');
+}
+
+// ============ THEME ============
+function loadTheme() {
+  const theme = localStorage.getItem('cp_theme')||'dark';
+  document.documentElement.setAttribute('data-theme',theme);
+  document.getElementById('theme-btn').textContent = theme==='dark'?'🌙':'☀️';
+  const tog = document.getElementById('theme-toggle');
+  if(tog) tog.classList.toggle('on', theme==='light');
+}
+function toggleTheme() {
+  const c = document.documentElement.getAttribute('data-theme');
+  const next = c==='dark'?'light':'dark';
+  localStorage.setItem('cp_theme', next);
+  loadTheme();
+}
+
+// ============ LOGOUT ============
+function doLogout() {
+  localStorage.removeItem('cp_current');
+  showAuthView();
+}
+
+// ============ HELPERS ============
+function previewImg(input, previewId) {
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById(previewId);
+    img.src=e.target.result; img.style.display='block';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ============================================================
+// BOOTSTRAP: decide which view to show on page load
+// ============================================================
+(function bootstrap() {
+  loadTheme();
+  const stored = localStorage.getItem('cp_current');
+  if (stored === 'admin') { window.location.href = 'admin.html'; return; }
+  if (stored) {
+    const users = getUsers();
+    if (users[stored] && !users[stored].blocked) { enterApp(stored); return; }
+    localStorage.removeItem('cp_current');
+  }
+  showAuthView();
+})();
+</script>
+</body>
+</html>
